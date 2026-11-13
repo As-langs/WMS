@@ -1,8 +1,9 @@
 # WMS 智能助手 (WMS Assistant)
 
-[![iOS Release](https://img.shields.io/badge/iOS-1.1%20Release-blue?logo=apple&style=flat-square)](https://github.com/As-langs/WMS/releases)
-[![Android](https://img.shields.io/badge/Android-1.0-brightgreen?logo=android&style=flat-square)](https://github.com/As-langs/WMS/releases)
-[![Web](https://img.shields.io/badge/Web-3.0-orange?logo=googlechrome&style=flat-square)](https://github.com/As-langs/WMS/releases)
+[![iOS Release](https://img.shields.io/badge/iOS-1.1%20Release-blue?logo=apple&style=flat-square)](https://github.com/As-langs/WMS/releases/tag/IOS1.1)
+[![Android](https://img.shields.io/badge/Android-1.0-brightgreen?logo=android&style=flat-square)](https://github.com/As-langs/WMS/releases/tag/Android1.0)
+[![Web](https://img.shields.io/badge/Web-3.0-orange?logo=googlechrome&style=flat-square)](https://github.com/As-langs/WMS/releases/tag/3.0)
+[![Script](https://img.shields.io/badge/Script-2.0-blueviolet?logo=python&style=flat-square)](https://github.com/As-langs/WMS/releases/tag/2.0)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20iOS%20%7C%20Android%20%7C%20Web-lightgrey?style=flat-square)](#各端平台与使用场景)
 
 **面向 Windows 自动化脚本、局域网 Web、iOS 和 Android 的多平台企业级 WMS 仓储作业辅助系统**
@@ -49,12 +50,12 @@ WMS/
 
 ## 各端平台与使用场景
 
-| 平台 / 模块 | 核心技术栈 | 适用场景 | 快速入口 |
-| :--- | :--- | :--- | :--- |
-| **iOS 端 (`WMS-IOS`)** | Swift 5.0, SwiftUI, iOS 18.0+ | iPhone / iPad 手持作业，支持智能交互出库、托盘查验、PDA 实际出库确认及秒级并发导出 | [查看 WMS-IOS 文档](./WMS-IOS) |
-| **Android 端 (`WMS-AD`)** | Kotlin, Jetpack Compose, Android 8.0+ | 工业手持 PDA、Android 手机与仓储平板 | [查看 WMS-AD 文档](./WMS-AD) |
-| **局域网 Web (`WMS-WEB`)** | Python 3.10+, Flask, HTML5 | 仓库内电脑、手机或平板免安装，通过局域网浏览器协同访问 | [查看 WMS-WEB 文档](./WMS-WEB) |
-| **自动化脚本 (`WMS-SC`)** | Python 3.10+, Batch | Windows 电脑后台持续驻留监听、自动领料出库及异常任务复盘 | [查看 WMS-SC 文档](./WMS-SC) |
+| 平台 / 模块 | 核心技术栈 | 适用场景 | 源码目录 | 最新独立发布 (Release) |
+| :--- | :--- | :--- | :--- | :--- |
+| **iOS 端 (`WMS-IOS`)** | Swift 5.0, SwiftUI, iOS 18.0+ | iPhone / iPad 手持作业，支持智能交互出库、托盘查验、PDA 实际出库确认及秒级并发导出 | [浏览 WMS-IOS 源码](./WMS-IOS) | [🍏 iOS 1.1 发布页](https://github.com/As-langs/WMS/releases/tag/IOS1.1) |
+| **Android 端 (`WMS-AD`)** | Kotlin, Jetpack Compose, Android 8.0+ | 工业手持 PDA、Android 手机与仓储平板 | [浏览 WMS-AD 源码](./WMS-AD) | [🤖 Android 1.0 发布页](https://github.com/As-langs/WMS/releases/tag/Android1.0) |
+| **局域网 Web (`WMS-WEB`)** | Python 3.10+, Flask, HTML5 | 仓库内电脑、手机或平板免安装，通过局域网浏览器协同访问 | [浏览 WMS-WEB 源码](./WMS-WEB) | [🌐 Web 3.0 发布页](https://github.com/As-langs/WMS/releases/tag/3.0) |
+| **自动化脚本 (`WMS-SC`)** | Python 3.10+, Batch | Windows 电脑后台持续驻留监听、自动领料出库及异常任务复盘 | [浏览 WMS-SC 源码](./WMS-SC) | [⚡️ 脚本 2.0 发布页](https://github.com/As-langs/WMS/releases/tag/2.0) |
 
 ---
 
@@ -138,13 +139,13 @@ python web_app.py
 
 ## 下载与发布渠道 (Releases)
 
-各平台正式编译安装包请访问 GitHub Releases 页面获取：
+各端均拥有独立的 Release 版本与安装包，请按需点击前往对应版本页面下载：
 
-👉 **[前往 GitHub Releases 官方发布页面](https://github.com/As-langs/WMS/releases)**
-
-* **iOS 客户端**：下载 `WMSStockOutiOS_v1.1.ipa` (标签: `IOS1.1`)
-* **Android 客户端**：下载 `WMSbeat.apk` (标签: `Android1.0`)
-* **Windows 客户端 / 便携脚本**：下载对应 Release 压缩包
+* 🍏 **iOS 客户端 (v1.1)**：[前往下载 WMSStockOutiOS_v1.1.ipa (Release IOS1.1)](https://github.com/As-langs/WMS/releases/tag/IOS1.1)
+* 🤖 **Android 客户端 (v1.0)**：[前往下载 WMSbeat.apk (Release Android1.0)](https://github.com/As-langs/WMS/releases/tag/Android1.0)
+* 🌐 **局域网 Web (v3.0)**：[前往下载 Web 3.0 部署包 (Release 3.0)](https://github.com/As-langs/WMS/releases/tag/3.0)
+* ⚡️ **Windows 脚本模式 (v2.0)**：[前往下载 立体库自动化脚本包 (Release 2.0)](https://github.com/As-langs/WMS/releases/tag/2.0)
+* 📦 **全部历史版本总览**：[浏览 GitHub Releases 完整列表](https://github.com/As-langs/WMS/releases)
 
 ---
 
