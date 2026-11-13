@@ -9,6 +9,7 @@ build/
 DerivedData/
 IPA_Build/
 *.ipa
+!release_assets/*.ipa
 *.dSYM.zip
 *.dSYM
 xcuserdata/
@@ -20,6 +21,7 @@ xcuserdata/
 build/
 app/build/
 *.apk
+!release_assets/*.apk
 *.aab
 .idea/
 *.iml
