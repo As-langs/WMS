@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode / iOS
+build/
+DerivedData/
+IPA_Build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcuserdatad
+
+# Android / Gradle
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+.idea/
+*.iml
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+venv/
+.env

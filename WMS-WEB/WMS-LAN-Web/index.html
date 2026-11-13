@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="WMS 出库助手">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>WMS 出库助手</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --panel:#ffffff;
+      --line:#e5e7eb;
+      --text:#111827;
+      --muted:#6b7280;
+      --accent:#10a37f;
+      --accent-dark:#0f8c6c;
+      --user:#eaf7f2;
+      --assistant:#f7f7f8;
+      --warn:#fff7e6;
+      --warn-line:#f2cc73;
+      --shadow:0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.04);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; min-height:100%; margin:0}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    }
+    .page{
+      display:flex;
+      flex-direction:column;
+      height:100vh;
+      height:100dvh;
+      min-height:0;
+    }
+    @supports (-webkit-touch-callout: none){
+      html,body{min-height:-webkit-fill-available}
+    }
+    /* Standalone iOS Web App: respect the status-bar and home-indicator safe areas. */
+    @media (display-mode: standalone){
+      .topbar{padding-top:env(safe-area-inset-top); height:calc(56px + env(safe-area-inset-top))}
+      .composer-wrap{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+      .messages{scroll-padding-bottom:calc(160px + env(safe-area-inset-bottom))}
+    }
+    @media (display-mode: standalone) and (max-width:640px){
+      .topbar{height:auto; min-height:calc(56px + env(safe-area-inset-top))}
+      .composer-wrap{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+    }
+    .topbar{
+      height:56px; border-bottom:1px solid var(--line); background:#fff;
+      display:flex; align-items:center; justify-content:center; position:sticky; top:0; z-index:10;
+    }
+    .topbar-inner{width:100%; max-width:780px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; gap:12px}
+    .brand{display:flex; flex-direction:column; min-width:0}
+    .brand-title{font-size:18px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .brand-sub{font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .ghost-btn,.ghost-link,.solid-btn{
+      border-radius:12px; border:1px solid var(--line); background:#fff; color:var(--text); cursor:pointer;
+      font:inherit; padding:10px 14px;
+    }
+    .ghost-btn:hover,.ghost-link:hover{background:#f9fafb}
+    .solid-btn{background:var(--accent); color:#fff; border-color:var(--accent)}
+    .solid-btn:hover{background:var(--accent-dark)}
+    .solid-btn:disabled,.ghost-btn:disabled{opacity:.55; cursor:not-allowed}
+
+    .login-wrap{flex:1; display:flex; align-items:center; justify-content:center; padding:24px}
+    .login-card{width:100%; max-width:420px; background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); padding:22px}
+    .login-card h2{margin:0 0 8px; font-size:22px}
+    .login-card p{margin:0 0 18px; color:var(--muted); font-size:14px}
+    .label{display:block; font-size:13px; font-weight:600; margin-bottom:8px}
+    .input,.textarea,select{
+      width:100%; border:1px solid #d1d5db; border-radius:14px; padding:13px 14px; font:inherit; background:#fff; color:var(--text);
+      outline:none;
+    }
+    .input:focus,.textarea:focus,select:focus{border-color:#8bb9ad; box-shadow:0 0 0 3px rgba(16,163,127,.12)}
+    .err{margin-top:10px; color:#b42318; font-size:13px; min-height:1.2em}
+
+    .app{display:none; flex:1; min-height:0}
+    .app.active{display:flex; flex-direction:column}
+    .chat-shell{flex:1; min-height:0; display:flex; justify-content:center}
+    .chat-column{width:100%; max-width:780px; display:flex; flex-direction:column; min-height:0}
+    .quick-row{
+      display:flex; gap:8px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--line); background:#fff;
+    }
+    .quick-chip{border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 12px; font-size:13px; cursor:pointer}
+    .quick-chip:hover{background:#f9fafb}
+
+    .messages{flex:1; min-height:0; overflow:auto; padding:20px 16px 160px; background:#fff; scroll-behavior:smooth}
+    .row{display:flex; gap:12px; margin:0 auto 18px; max-width:820px}
+    .row.user{justify-content:flex-end}
+    .avatar{
+      width:28px; height:28px; border-radius:8px; flex:0 0 28px;
+      display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;
+      background:#111827; color:#fff;
+    }
+    .row.user .avatar{order:2; background:var(--accent)}
+    .bubble{
+      max-width:min(100%, 700px); border-radius:18px; padding:14px 16px; white-space:pre-wrap; word-break:break-word;
+      border:1px solid transparent;
+    }
+    .row.assistant .bubble{background:var(--assistant); border-top-left-radius:6px}
+    .row.user .bubble{background:var(--user); border-top-right-radius:6px}
+    .row.system{justify-content:center}
+    .row.system .bubble{background:#f3f4f6; color:var(--muted); font-size:12px; padding:8px 12px; border-radius:999px}
+    .assistant-card{
+      margin-top:10px; padding:12px; border:1px solid var(--line); border-radius:16px; background:#fff;
+    }
+    .assistant-card:first-child{margin-top:0}
+    .card-title{font-weight:700; margin-bottom:8px}
+    .warn{background:var(--warn); border:1px solid var(--warn-line); border-radius:14px; padding:10px 12px; font-size:14px; margin-top:10px}
+    .candidate-list{display:flex; flex-direction:column; gap:8px; margin-top:10px}
+    .candidate{
+      text-align:left; width:100%; border:1px solid var(--line); background:#fff; border-radius:14px; padding:11px 12px; cursor:pointer;
+      font:inherit; color:var(--text)
+    }
+    .candidate:hover{background:#f9fafb}
+    .muted{font-size:13px; color:var(--muted)}
+    .confirm-area{display:flex; flex-direction:column; gap:10px; margin-top:12px}
+    .job-box{font-size:14px; background:#fcfcfd; border:1px solid var(--line); border-radius:14px; padding:12px}
+    .table-like{display:grid; gap:8px}
+    .qty-grid{display:grid; grid-template-columns:1fr 140px; gap:10px; align-items:center; margin-top:8px}
+    .small{font-size:12px; color:var(--muted)}
+
+    .composer-wrap{
+      /* Fix the composer to the viewport, not the narrower chat content column. */
+      position:fixed; left:0; right:0; bottom:0; z-index:20;
+      background:rgba(255,255,255,.97); border-top:0; padding:12px 16px 18px;
+    }
+    /* Center the input against the whole browser window, like ChatGPT. */
+    .composer-inner{width:min(680px, calc(100vw - 32px)); max-width:none; margin:0 auto}
+    .composer-box{
+      width:100%; margin:0 auto;
+      display:flex; align-items:flex-end; gap:10px; border:1px solid #d1d5db; border-radius:24px; background:#fff; padding:10px 10px 10px 14px; box-shadow:var(--shadow)
+    }
+    .textarea{border:none; padding:0; resize:none; max-height:180px; min-height:24px; text-align:center}
+    .textarea:focus{box-shadow:none}
+    .textarea::placeholder{text-align:center; color:#8b8b8b}
+    .send-btn{border:none; background:var(--accent); color:#fff; border-radius:14px; width:44px; height:44px; cursor:pointer; font-size:18px; flex:0 0 44px}
+    .send-btn:hover{background:var(--accent-dark)}
+    .foot{margin-top:8px; font-size:12px; color:var(--muted); text-align:center}
+    .hidden{display:none!important}
+
+    @media (max-width:640px){
+      .topbar-inner,.chat-column,.composer-inner{max-width:100%;}
+      .topbar{height:auto}
+      .topbar-inner{padding:10px 12px}
+      .quick-row{padding:10px 12px}
+      .messages{padding:14px 10px 150px}
+      .row{gap:8px; margin-bottom:14px}
+      .bubble{padding:12px 13px}
+      .composer-wrap{padding:10px 10px 14px}
+      .composer-inner{width:calc(100vw - 24px)}
+      .qty-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-title">WMS 对话式出库助手</div>
+        <div class="brand-sub" id="statusLine">正在连接 WMS…</div>
+      </div>
+      
+    </div>
+  </div>
+
+  <div class="login-wrap hidden" id="loginWrap">
+    <div class="login-card">
+      <h2>网页登录</h2>
+      <p>请输入服务器电脑生成的网页登录口令。WMS 账号密码只保存在服务器本机，不会暴露到浏览器。</p>
+      <label class="label" for="accessInput">访问口令</label>
+      <input id="accessInput" class="input" type="password" placeholder="输入网页登录口令" autocomplete="current-password">
+      <div style="margin-top:14px"><button class="solid-btn" id="loginBtn">登录</button></div>
+      <div class="err" id="loginError"></div>
+    </div>
+  </div>
+
+  <div class="app active" id="appWrap">
+    <div class="chat-shell">
+      <div class="chat-column">
+        <div class="quick-row">
+          <button class="quick-chip" data-fill="胆碱 150kg，再领20包硫酸盐">示例：生产领料</button>
+          <button class="quick-chip" data-fill="A00555">示例：托盘出库</button>
+          <button class="quick-chip" id="monitorBtn">任务监控</button>
+        </div>
+        <div class="messages" id="messages"></div>
+      </div>
+    </div>
+    <div class="composer-wrap">
+      <div class="composer-inner">
+        <div class="composer-box">
+          <textarea id="promptInput" class="textarea" rows="1" placeholder="输入物料需求，例如：胆碱 150kg，再领20包硫酸盐；或输入托盘号 A00555"></textarea>
+          <button class="send-btn" id="sendBtn" title="发送">↑</button>
+        </div>
+        <div class="foot">回车发送；Shift + 回车换行。若只有一个候选物料，下一次直接按回车可自动选中 1。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let reqs = [];
+let idx = 0;
+let lines = [];
+let draftId = null;
+let pendingSelection = null;
+let lastPdaPreview = null;
+let monitorTimer = null;
+
+async function api(url, method='GET', body=null){
+  const resp = await fetch(url, {
+    method,
+    headers: body ? {'Content-Type':'application/json'} : {},
+    body: body ? JSON.stringify(body) : null
+  });
+  let data = {};
+  try { data = await resp.json(); } catch {}
+  if(!resp.ok){
+    throw new Error(data.detail || ('HTTP ' + resp.status));
+  }
+  return data;
+}
+
+function showApp(){ $('loginWrap').classList.add('hidden'); $('appWrap').classList.add('active'); }
+function setStatus(text){ $('statusLine').textContent = text; }
+function scrollBottom(){ const m=$('messages'); m.scrollTop = m.scrollHeight; }
+function autoGrow(){ const ta=$('promptInput'); ta.style.height='auto'; ta.style.height=Math.min(180, ta.scrollHeight)+'px'; }
+
+function addRow(text, role='assistant'){
+  const wrap = document.createElement('div');
+  wrap.className = 'row ' + role;
+  if(role === 'system'){
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+  } else {
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = role === 'user' ? '你' : 'W';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    if(role === 'user'){
+      wrap.appendChild(bubble);
+      wrap.appendChild(avatar);
+    } else {
+      wrap.appendChild(avatar);
+      wrap.appendChild(bubble);
+    }
+  }
+  $('messages').appendChild(wrap);
+  scrollBottom();
+  return wrap;
+}
+function addAssistant(text){ return addRow(text, 'assistant'); }
+function addUser(text){ return addRow(text, 'user'); }
+function addSystem(text){ return addRow(text, 'system'); }
+function addCard(parentRow, html){
+  const bubble = parentRow.querySelector('.bubble');
+  const card = document.createElement('div');
+  card.className = 'assistant-card';
+  card.innerHTML = html;
+  bubble.appendChild(card);
+  scrollBottom();
+  return card;
+}
+function escapeHtml(v){ return String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+
+async function initializeApp(){
+  showApp();
+  addAssistant('你好，我是 WMS 出库助手。\n\n你可以像原来的命令行一样直接输入：\n• 胆碱 150kg，再领20包硫酸盐\n• A00555（托盘号）\n\n我会先查询并让你确认物料，生成预览后再执行真实写操作。');
+  await refreshStatus();
+  monitorTimer = setInterval(refreshStatus, 10000);
+}
+async function refreshStatus(){
+  try{
+    const d = await api('/api/status');
+    const m = d.monitor || {};
+    setStatus((m.state || '状态未知') + (m.last_check ? ' · 更新 ' + m.last_check : '') + (m.error ? ' · ' + m.error : ''));
+  }catch(err){ setStatus(err.message); }
+}
+
+function parseRequirements(text){
+  const segments = text.trim().split(/[，,；;\n]+|再领|另领|再来|并领|同时领/).map(s=>s.trim()).filter(Boolean);
+  const unit = '公斤|千克|kg|克|g|包|袋|桶|件|个|瓶|吨|t';
+  const a = new RegExp('^(.*?)\\s*(\\d+(?:\\.\\d+)?)\\s*(' + unit + ')$','i');
+  const b = new RegExp('^(\\d+(?:\\.\\d+)?)\\s*(' + unit + ')\\s*(.+)$','i');
+  return segments.map(seg => {
+    let m = seg.match(a);
+    if(m) return {name:m[1].trim(), quantity:m[2], unit:m[3].toLowerCase()};
+    m = seg.match(b);
+    if(m) return {name:m[3].trim(), quantity:m[1], unit:m[2].toLowerCase()};
+    throw new Error('未能识别“' + seg + '”。请按“物料名 数量单位”输入，例如：胆碱 150kg。');
+  });
+}
+
+async function chooseCandidate(position){
+  if(!pendingSelection) return;
+  const state = pendingSelection;
+  const m = state.items[position];
+  if(!m) return;
+  if(m.IsDel === '1'){
+    const yes = confirm('该物料 IsDel=1，请核实是否允许出库。仍要选择吗？');
+    if(!yes) return;
+  }
+  pendingSelection = null;
+  state.card.remove();
+  lines.push({keyword:state.requirement.name, index:m.index, quantity:state.requirement.quantity, unit:state.requirement.unit});
+  addAssistant('已选择：' + m.MaterialName + '，需求 ' + state.requirement.quantity + ' ' + state.requirement.unit + '。');
+  idx += 1;
+  await nextRequirement();
+}
+
+async function nextRequirement(){
+  if(idx >= reqs.length){
+    await makeDraft();
+    return;
+  }
+  const r = reqs[idx];
+  addAssistant('第 ' + (idx+1) + '/' + reqs.length + ' 项：查询“' + r.name + '”，需求 ' + r.quantity + ' ' + r.unit + '。');
+  const data = await api('/api/material-search','POST',{keyword:r.name});
+  if(!data.items.length){
+    addAssistant('没有找到候选物料，请换更准确的名称重新输入。');
+    return;
+  }
+  const row = addAssistant('请选择正确的物料。');
+  const tip = data.items.length === 1 ?
+    '只有 1 个候选项：直接按回车即可选择 1；也可以输入 1。' :
+    '请在底部输入框中输入候选序号（例如 1、2、3），再按回车；也可以直接点击候选项。';
+  const card = addCard(row, '<div class="muted">' + tip + '</div><div class="candidate-list"></div>');
+  const list = card.querySelector('.candidate-list');
+  data.items.forEach((m,pos)=>{
+    const btn = document.createElement('button');
+    btn.className = 'candidate';
+    btn.innerHTML = '<strong>' + (pos+1) + '. ' + escapeHtml(m.MaterialName) + '</strong><br>' +
+      '<span class="muted">编码 ' + escapeHtml(m.MaterialNo || '-') + '｜规格 ' + escapeHtml(m.Specification || '-') + '｜单位 ' + escapeHtml(m.Unit || '-') + '｜匹配 ' + escapeHtml(m.score) + (m.IsDel === '1' ? '｜注意：IsDel=1' : '') + '</span>';
+    btn.onclick = ()=>chooseCandidate(pos);
+    list.appendChild(btn);
+  });
+  pendingSelection = {items:data.items, card, requirement:r};
+}
+
+async function makeDraft(){
+  addSystem('正在计算重量并生成出库预览…');
+  try{
+    const d = await api('/api/stockout/draft','POST',{items:lines});
+    draftId = d.draft_id;
+    const row = addAssistant('生产领料出库预览，请仔细核对：');
+    const itemsHtml = d.items.map((x,i)=>
+      '<div class="job-box" style="margin-top:8px">' +
+        '<div><strong>' + (i+1) + '. ' + escapeHtml(x.material.MaterialName) + '（' + escapeHtml(x.material.MaterialNo) + '）</strong></div>' +
+        '<div class="small">输入：' + escapeHtml(x.quantity) + ' ' + escapeHtml(x.input_unit) + '</div>' +
+        '<div class="small">规格/单位：' + escapeHtml(x.material.Specification) + ' / ' + escapeHtml(x.material.Unit) + '</div>' +
+        '<div class="small">计划出库重量：' + escapeHtml(x.plan_weight_kg) + ' kg</div>' +
+      '</div>'
+    ).join('');
+    const card = addCard(row,
+      '<div class="card-title">单据类型：' + escapeHtml(d.stockout_type) + '</div>' +
+      '<div class="small">出口：' + escapeHtml(d.out_station) + '</div>' +
+      itemsHtml +
+      '<div class="warn">下一步将创建真实 WMS 出库单，并可能执行审核与分配。写操作不会自动重试，请先核对内容。</div>' +
+      '<div class="confirm-area">' +
+      '  <input class="input" id="draftConfirmInput" placeholder="无需输入内容，按回车继续确认提交">' +
+      '  <button class="solid-btn" id="draftConfirmBtn">确认创建出库单</button>' +
+      '</div>'
+    );
+    const input = card.querySelector('#draftConfirmInput');
+    const btn = card.querySelector('#draftConfirmBtn');
+    const submit = async()=>{
+      if(btn.disabled) return;
+      if(!confirm('确认创建真实 WMS 出库单，并继续审核/分配？请再次核对物料、数量和重量。')) return;
+      try{
+        btn.disabled = true;
+        const result = await api('/api/stockout/confirm/' + encodeURIComponent(draftId),'POST',{confirm:'CONFIRM'});
+        addAssistant('已提交生产领料出库流程。\n' + (result.job?.message || '请在 WMS 页面核对最终状态。'));
+      }catch(err){
+        addAssistant(err.message);
+      }finally{ btn.disabled = false; }
+    };
+    btn.onclick = submit;
+    input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); submit(); } });
+    input.focus();
+  }catch(err){
+    addAssistant('生成预览失败：' + err.message);
+  }
+}
+
+async function queryTray(tray){
+  addAssistant('正在查询托盘 ' + tray + ' 的出库任务…');
+  try{
+    const d = await api('/api/pda/query','POST',{tray});
+    lastPdaPreview = d;
+    const row = addAssistant('已查询到托盘任务，请填写每项实际取出数量：');
+    const card = addCard(row, '<div class="table-like" id="pdaItems"></div>');
+    const box = card.querySelector('#pdaItems');
+    const inputs = {};
+    d.items.forEach(item=>{
+      const wrap = document.createElement('div');
+      wrap.className = 'job-box';
+      wrap.innerHTML =
+        '<div><strong>' + escapeHtml(item.MaterialName) + '</strong></div>' +
+        '<div class="small">编码：' + escapeHtml(item.MaterialNo || '-') + '｜规格：' + escapeHtml(item.Specification || '-') + '｜状态：' + escapeHtml(item.Status || '-') + '</div>' +
+        '<div class="qty-grid"><div class="small">计划数量：' + escapeHtml(item.plan) + '</div><input class="input" inputmode="numeric" placeholder="实际数量" value="' + escapeHtml(item.plan) + '"></div>';
+      const inp = wrap.querySelector('input');
+      inputs[item.TaskDetailId] = inp;
+      box.appendChild(wrap);
+    });
+    const tail = document.createElement('div');
+    tail.className = 'warn';
+    tail.textContent = '真实出库确认会修改 WMS 库存与任务状态。输入 CONFIRM 后提交；若结果异常，请先核对 WMS，不要重复提交。';
+    card.appendChild(tail);
+    const area = document.createElement('div');
+    area.className = 'confirm-area';
+    area.innerHTML = '<input class="input" id="pdaConfirmInput" placeholder="无需输入内容，按回车继续确认提交"><button class="solid-btn" id="pdaConfirmBtn">确认提交实际出库</button>';
+    card.appendChild(area);
+    const confirmInput = area.querySelector('#pdaConfirmInput');
+    const btn = area.querySelector('#pdaConfirmBtn');
+    const submit = async()=>{
+      if(btn.disabled) return;
+      if(!confirm('确认提交托盘实际出库？这会修改真实 WMS 库存和任务状态。请核对每项实际数量。')) return;
+      const quantities = {};
+      Object.entries(inputs).forEach(([k,el])=> quantities[k] = (el.value || '').trim());
+      try{
+        btn.disabled = true;
+        const result = await api('/api/pda/confirm','POST',{preview_id:d.preview_id, quantities, confirm:'CONFIRM'});
+        addAssistant((result.ok ? '服务器返回成功标志。' : '未能确认业务成功。') + '\n' + (result.job?.message || '') + '\n' + (result.warning || ''));
+      }catch(err){
+        addAssistant(err.message);
+      }finally{ btn.disabled = false; }
+    };
+    btn.onclick = submit;
+    confirmInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); submit(); } });
+    confirmInput.focus();
+  }catch(err){
+    addAssistant(err.message);
+  }
+}
+
+async function showMonitor(){
+  try{
+    const d = await api('/api/status');
+    const row = addAssistant('后台任务监控');
+    const tasks = (d.tasks || []).slice(0,25);
+    const html =
+      '<div class="job-box"><div><strong>状态：</strong>' + escapeHtml(d.monitor?.state || '-') + '</div>' +
+      '<div class="small">最近刷新：' + escapeHtml(d.monitor?.last_check || '-') + '</div>' +
+      '<div class="small">异常：' + escapeHtml(d.monitor?.error || '无') + '</div></div>' +
+      '<div class="job-box" style="margin-top:10px"><div class="card-title">最近任务</div>' +
+      (tasks.length ? tasks.map(t=>'<div class="small" style="padding:6px 0;border-bottom:1px solid #eee">任务 ' + escapeHtml(t.TaskCode || t.TaskMainId) + '｜托盘 ' + escapeHtml(t.TrayCode || '-') + '｜类型 ' + escapeHtml(t.TaskType || '-') + '｜状态 ' + escapeHtml(t.Status || '-') + '｜' + escapeHtml(t.CreateDate || '-') + '</div>').join('') : '<div class="small">目前没有可显示的任务，或任务查询尚未成功。</div>') +
+      '</div>';
+    addCard(row, html);
+  }catch(err){ addAssistant(err.message); }
+}
+
+async function onSend(){
+  const input = $('promptInput');
+  const raw = input.value;
+  const text = raw.trim();
+  input.value = '';
+  autoGrow();
+
+  if(pendingSelection){
+    if(!text){
+      if(pendingSelection.items.length === 1){
+        addSystem('已按回车，自动选中候选项 1。');
+        await chooseCandidate(0);
+        return;
+      }
+      addAssistant('当前正在等待选择物料，请输入候选序号（例如 1、2），再按回车。');
+      return;
+    }
+    addUser(text);
+    if(/^\d+$/.test(text)){
+      const n = Number(text);
+      if(n >= 1 && n <= pendingSelection.items.length){
+        await chooseCandidate(n-1);
+        return;
+      }
+      addAssistant('序号超出范围，请输入 1 到 ' + pendingSelection.items.length + '。');
+      return;
+    }
+    addAssistant('当前正在等待选择物料，请输入候选序号（例如 1），或者点击候选项。');
+    return;
+  }
+
+  if(!text) return;
+  addUser(text);
+  $('sendBtn').disabled = true;
+  try{
+    if(/^(任务监控|查看任务监控|监控)$/.test(text)){
+      await showMonitor();
+      return;
+    }
+    if(/^[A-Za-z]\d{5}$/.test(text)){
+      await queryTray(text.toUpperCase());
+      return;
+    }
+    reqs = parseRequirements(text);
+    idx = 0;
+    lines = [];
+    addSystem('识别到 ' + reqs.length + ' 项需求，开始逐项查询物料。');
+    await nextRequirement();
+  }catch(err){
+    addAssistant(err.message);
+  }finally{
+    $('sendBtn').disabled = false;
+  }
+}
+
+$('monitorBtn').addEventListener('click', showMonitor);
+$('sendBtn').addEventListener('click', onSend);
+document.querySelectorAll('[data-fill]').forEach(btn=>btn.addEventListener('click', ()=>{ $('promptInput').value = btn.dataset.fill; autoGrow(); $('promptInput').focus(); }));
+$('promptInput').addEventListener('input', autoGrow);
+$('promptInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); onSend(); }
+});
+autoGrow();
+initializeApp();
+</script>
+</body>
+</html>
