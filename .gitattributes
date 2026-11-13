@@ -1,0 +1,27 @@
+# GitHub Linguist Language Overrides
+# 强制 GitHub 统计 Swift (iOS) 与 Kotlin (Android) 源码比例
+
+*.swift linguist-detectable=true
+*.swift linguist-language=Swift
+
+*.kt linguist-detectable=true
+*.kt linguist-language=Kotlin
+
+*.kts linguist-detectable=true
+*.kts linguist-language=Kotlin
+
+*.py linguist-detectable=true
+*.py linguist-language=Python
+
+# 确保移动端源码目录不被判定为第三方 Vendored 或 Generated 代码
+WMS-IOS/** linguist-vendored=false
+WMS-IOS/** linguist-generated=false
+
+WMS-AD/** linguist-vendored=false
+WMS-AD/** linguist-generated=false
+
+WMS-WEB/** linguist-vendored=false
+WMS-WEB/** linguist-generated=false
+
+WMS-SC/** linguist-vendored=false
+WMS-SC/** linguist-generated=false
